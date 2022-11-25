@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunktp05_bertuol_yoann=self.webpackChunktp05_bertuol_yoann||[]).push([[592],{4302:(o,t,n)=>{n.d(t,{n:()=>e});var _=n(529),a=n(2340);class e{apiUrl=a.N.api;httpOptions={headers:new _.WM({"Content-Type":"application/json"})};constructor(){}}}}]);
