@@ -17,7 +17,11 @@ $app = AppFactory::create();
 $app->addErrorMiddleware(true, true, true);
 $app->add(function(Request $request, RequestHandler $handler) {
 	$response = $handler->handle($request);
-    return $response->withAddedHeader('Content-Type', 'application/json');
+	$response = $response->withAddedHeader('Content-Type', 'application/json');
+	$response = $response->withAddedHeader('Access-Control-Allow-Origin', '*');
+	$response = $response->withAddedHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+	$response = $response->withAddedHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+	return $response;
 });
 // Set Base Path
 $app->setBasePath("/api");
