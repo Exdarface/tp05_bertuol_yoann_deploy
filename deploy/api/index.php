@@ -89,7 +89,7 @@ $app->post('/login', function (Request $request, Response $response) {
 			$response = $response->withStatus(401);
 			$response->getBody()->write(json_encode(array('ERREUR' => 'Connexion', 'MESSAGE' => 'Incorrect Password')));
 		} else {
-			$response = $response->withStatus(404);
+			$response = $response->withStatus(401);
 			$response->getBody()->write(json_encode(array('ERREUR' => 'Connexion', 'MESSAGE' => 'Unknown Login')));
 		}
 	}
@@ -120,7 +120,7 @@ $app->get('/product/{id}', function (Request $request, Response $response, $args
 	if ($product) {
 		$response->getBody()->write(json_encode($product));
 	} else {
-		$response = $response->withStatus(404);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Product not found");
 	}
 	return $response;
@@ -141,7 +141,7 @@ $app->post('/product', function (Request $request, Response $response) {
 	}
 
 	if($error){
-		$response = $response->withStatus(400);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Bad request");
 		return $response;
 	}
@@ -171,7 +171,7 @@ $app->put('/product', function (Request $request, Response $response) {
 	}
 
 	if($error){
-		$response = $response->withStatus(400);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Bad request");
 		return $response;
 	}
@@ -204,7 +204,7 @@ $app->delete('/product', function (Request $request, Response $response) {
 	}
 
 	if($error){
-		$response = $response->withStatus(400);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Bad request");
 		return $response;
 	}
@@ -240,14 +240,14 @@ $app->get('/client', function (Request $request, Response $response) {
 	$data = file_get_contents(__DIR__ . "/mocks/clients.json");
 	$data = json_decode($data, true);
 	if(!preg_match('/Bearer\s(\S+)/', $token_header, $matches)) {
-		$response = $response->withStatus(404);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Invalid token");
 		return $response;
 	}
 	$token = JWT::decode($matches[1], new Key(JWT_SECRET, "HS256"));
 	$now = new DateTimeImmutable();
 	if($token->exp < $now->getTimestamp()) {
-		$response = $response->withStatus(404);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Token expired");
 		return $response;
 	}
@@ -288,7 +288,7 @@ $app->post('/client', function (Request $request, Response $response) {
 	}
 
 	if($error){
-		$response = $response->withStatus(400);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Bad request");
 		return $response;
 	}
@@ -338,7 +338,7 @@ $app->put('/client', function (Request $request, Response $response) {
 	}
 
 	if($error){
-		$response = $response->withStatus(400);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Bad request");
 		return $response;
 	}
@@ -378,7 +378,7 @@ $app->delete('/client', function (Request $request, Response $response) {
 	}
 
 	if($error){
-		$response = $response->withStatus(400);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Bad request");
 		return $response;
 	}
