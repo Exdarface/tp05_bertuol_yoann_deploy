@@ -1,0 +1,16 @@
+[
+	{
+		"id": 1,
+		"firstname": "John",
+		"lastname": "Doe",
+		"email": "test@gmail.com",
+		"phone": "1234567890",
+		"gender": "Male",
+		"address": "123 Main St",
+		"city": "New York",
+		"zip": "10001",
+		"country": "USA",
+		"login": "test",
+		"password": "test"
+	}
+]
