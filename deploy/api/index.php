@@ -13,7 +13,8 @@ const JWT_SECRET = "makey1234567";
 
 // Create Slim AppFactory
 $app = AppFactory::create();
-// Add Middleware : Error, JSON
+// Add Middleware : JSON, Error, Headers
+$app->addBodyParsingMiddleware();
 $app->addErrorMiddleware(true, true, true);
 $app->add(function(Request $request, RequestHandler $handler) {
 	$response = $handler->handle($request);
