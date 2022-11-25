@@ -43,5 +43,4 @@ Thumbs.db
 
 # Composer
 composer.phar
-/vendor
-.htaccess
+/vendor/
