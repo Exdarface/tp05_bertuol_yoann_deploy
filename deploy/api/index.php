@@ -1,6 +1,9 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/models/Client.php';
+require_once __DIR__ . '/models/Product.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -10,7 +13,6 @@ use \Firebase\JWT\JWT as JWT;
 use Firebase\JWT\Key;
 
 const JWT_SECRET = "makey1234567";
-
 // Create Slim AppFactory
 $app = AppFactory::create();
 // Add Middleware : JSON, Error, Headers
@@ -35,7 +37,7 @@ $options = [
     "algorithm" => ["HS256"],
     "secret" => JWT_SECRET,
     "path" => ["/api"],
-    "ignore" => ["/api/login", "/api/hello"],
+    "ignore" => ["/api/login", "/api/hello", "/api/signup"],
     "error" => function ($response, $arguments) {
         $data = array('ERREUR' => 'Connexion', 'MESSAGE' => 'non-valid JWT');
         $response = $response->withStatus(401);
@@ -59,9 +61,9 @@ function createJwT (Response $response, int $payload) : string {
 
 // Hello world route on '/hello'
 $app->get('/hello', function (Request $request, Response $response) {
-	$data = file_get_contents(__DIR__ . "/mocks/products.json");
-	$response->getBody()->write($data);
-	return $response;
+	global $entityManager;
+	$clients = $entityManager->getRepository('Client')->findAll();
+	return $clients;
 });
 
 #region USER_MIDDLEWARE
@@ -317,7 +319,7 @@ $app->post('/client', function (Request $request, Response $response) {
 });
 
 // Update client to ./mock/clients.json
-$app->put('/client', function (Request $request, Response $response) {
+$app->put('/signup', function (Request $request, Response $response) {
 	$error=false;
 	$body = $request->getParsedBody();
 	$id = $body['id'] ?? "";
