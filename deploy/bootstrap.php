@@ -18,5 +18,6 @@ $conn = array(
 	'dbname' => 'yb_db',
 	'port' => '5432'
 );
+
 $entityManager = EntityManager::create($conn, $config);
 

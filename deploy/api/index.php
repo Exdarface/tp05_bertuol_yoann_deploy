@@ -63,7 +63,8 @@ function createJwT (Response $response, int $payload) : string {
 $app->get('/hello', function (Request $request, Response $response) {
 	global $entityManager;
 	$clients = $entityManager->getRepository('Client')->findAll();
-	return $clients;
+	$response->getBody()->write(json_encode($clients));
+	return $response;
 });
 
 #region USER_MIDDLEWARE

@@ -1,10 +1,29 @@
 <?php
+use Doctrine\ORM\Mapping\Entity as Entity;
+use Doctrine\ORM\Mapping\Table as Table;
+use Doctrine\ORM\Mapping\Column as Column;
+use Doctrine\ORM\Mapping\Id as Id;
+use Doctrine\ORM\Mapping\GeneratedValue as GeneratedValue;
 
-// create a product class
+/**
+ * @Entity @Table(name="products")
+ **/
 class Product {
+	/**
+	 * @Id @Column(type="integer") @GeneratedValue
+	 **/
 	public $id;
+	/**
+	 * @Column(type="string")
+	 **/
 	public $name;
+	/**
+	 * @Column(type="string")
+	 **/
 	public $description;
+	/**
+	 * @Column(type="integer")
+	 **/
 	public $price;
 
 	public function getId() {
