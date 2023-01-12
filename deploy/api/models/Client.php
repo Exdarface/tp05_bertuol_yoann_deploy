@@ -379,18 +379,8 @@ class Client implements \JsonSerializable
 	 * @return mixed Returns data which can be serialized by json_encode(), which is a value of any type other than a resource .
 	 */
 	public function jsonSerialize() {
-		return [
-			'id' => $this->getId(),
-			'firstname' => $this->getFirstname(),
-			'lastname' => $this->getLastname(),
-			'email' => $this->getEmail(),
-			'phone' => $this->getPhone(),
-			'gender' => $this->getGender(),
-			'address' => $this->getAddress(),
-			'city' => $this->getCity(),
-			'zip' => $this->getZip(),
-			'country' => $this->getCountry(),
-			'login' => $this->getLogin(),
-		];
+		$vars = get_object_vars($this);
+		unset($vars['password']);
+        return $vars;
 	}
 }

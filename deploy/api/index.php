@@ -13,9 +13,7 @@ require_once __DIR__ . '/models/Product.php';
 require_once __DIR__ . '/../bootstrap.php';
 
 const JWT_SECRET = "makey1234567";
-// Create Slim AppFactory
 $app = AppFactory::create();
-// Add Middleware : JSON, Error, Headers
 $app->addBodyParsingMiddleware();
 $app->addErrorMiddleware(true, true, true);
 $app->add(function(Request $request, RequestHandler $handler) {
@@ -37,7 +35,7 @@ $options = [
     "algorithm" => ["HS256"],
     "secret" => JWT_SECRET,
     "path" => ["/api"],
-    "ignore" => ["/api/login", "/api/hello", "/api/signup"],
+    "ignore" => ["/api/login", "/api/hello", "/api/signup", "/api/client", "/api/product"],
     "error" => function ($response, $arguments) {
         $data = array('ERREUR' => 'Connexion', 'MESSAGE' => 'non-valid JWT');
         $response = $response->withStatus(401);
@@ -62,8 +60,8 @@ function createJwT (Response $response, int $payload) : string {
 // Hello world route on '/hello'
 $app->get('/hello', function (Request $request, Response $response) {
 	global $entityManager;
-	$clients = $entityManager->getRepository(Client::class)->findAll();
-	$response->getBody()->write(json_encode($clients));
+	$client = $entityManager->getRepository(Client::class)->find(1);
+	$response->getBody()->write(json_encode($client));
 	return $response;
 });
 
@@ -98,21 +96,17 @@ $app->post('/login', function (Request $request, Response $response) {
 #region PRODUCT_MIDDLEWARE
 
 $app->get('/product', function (Request $request, Response $response) {
-	$data = file_get_contents(__DIR__ . "/mocks/products.json");
-	$response->getBody()->write($data);
+	global $entityManager;
+	$products = $entityManager->getRepository(Product::class)->findAll();
+	$response->getBody()->write(json_encode($products));
 	return $response;
 });
 
-// Get product by id from ./mocks/products.json
+// Get product by id from database
 $app->get('/product/{id}', function (Request $request, Response $response, $args) {
 	$id = $args['id'];
-	$data = file_get_contents(__DIR__ . "/mocks/products.json");
-	$data = json_decode($data, true);
-	foreach ($data as $value) {
-		if($value['id'] == $id){
-			$product = $value;
-		}
-	}
+	global $entityManager;
+	$product = $entityManager->getRepository(Product::class)->find($id);
 	if ($product) {
 		$response->getBody()->write(json_encode($product));
 	} else {
@@ -122,98 +116,79 @@ $app->get('/product/{id}', function (Request $request, Response $response, $args
 	return $response;
 });
 
-// Add product to ./mock/products.json
+// Add product to database
 $app->post('/product', function (Request $request, Response $response) {
-	$error=false;
 	$body = $request->getParsedBody();
-	$id = $body['id'] ?? "";
 	$name = $body['name'] ?? "";
 	$price = $body['price'] ?? "";
 	$description = $body['description'] ?? "";
 
-	// Check format id, name & price
-	if (empty($id) || empty($name) || empty($price) || !preg_match("/^[0-9]+$/", $id || !preg_match("/^[a-zA-Z0-9]+$/", $name) || !preg_match("/^[0-9]+$/", $price))) {
-		$error=true;
-	}
-
-	if($error){
+	if (empty($name) || empty($price) || !preg_match("/^[a-zA-Z0-9\s]+$/", $name) || !preg_match("/^[0-9]+$/", $price)) {
 		$response = $response->withStatus(401);
 		$response->getBody()->write("Bad request");
 		return $response;
 	}
 
-	// Add product to ./mock/products.json
-	$json = json_decode(file_get_contents(__DIR__ . "/mocks/products.json"), true);
-	$json[] = array('id' => $id, 'name' => $name, 'price' => $price, 'description' => $description);
-	$json = json_encode($json);
-	file_put_contents(__DIR__ . "/mocks/products.json", $json);
+	global $entityManager;
+	$product = new Product();
+	$product->setName($name);
+	$product->setPrice($price);
+	$product->setDescription($description);
+	$entityManager->persist($product);
+	$entityManager->flush();
 
-	$response->getBody()->write("Product added");
+	$response->getBody()->write(json_encode($product));
 	return $response;
 });
 
-// Update product to ./mock/products.json
 $app->put('/product', function (Request $request, Response $response) {
-	$error=false;
 	$body = $request->getParsedBody();
 	$id = $body['id'] ?? "";
-	$name = $body['name'] ?? "";
-	$price = $body['price'] ?? "";
-	$description = $body['description'] ?? "";
 
-	// Check format id, name & price
-	if (empty($id) || empty($name) || empty($price) || !preg_match("/^[0-9]+$/", $id || !preg_match("/^[a-zA-Z0-9]+$/", $name) || !preg_match("/^[0-9]+$/", $price))) {
-		$error=true;
-	}
-
-	if($error){
+	if (empty($id) || !preg_match("/^[0-9]+$/", $id)) {
 		$response = $response->withStatus(401);
-		$response->getBody()->write("Bad request");
+		$response->getBody()->write("Missing id");
 		return $response;
 	}
-
-	// Update product to ./mock/products.json
-	$json = json_decode(file_get_contents(__DIR__ . "/mocks/products.json"), true);
-	foreach ($json as $key => $value) {
-		if ($value['id'] == $id) {
-			$json[$key]['name'] = $name;
-			$json[$key]['price'] = $price;
-			$json[$key]['description'] = $description;
-		}
+	// Update product in database
+	global $entityManager;
+	$product = $entityManager->getRepository(Product::class)->find($id);
+	if (!$product) {
+		$response = $response->withStatus(401);
+		$response->getBody()->write("Product not found");
+		return $response;
 	}
-	$json = json_encode($json);
-	file_put_contents(__DIR__ . "/mocks/products.json", $json);
+	$product = $body["name"] ? $product->setName($body["name"]) : $product;
+	$product = $body["price"] ? $product->setPrice($body["price"]) : $product;
+	$product = $body["description"] ? $product->setDescription($body["description"]) : $product;
 
-	$response->getBody()->write("Product updated");
+	$entityManager->persist($product);
+	$entityManager->flush();
+	$response->getBody()->write(json_encode($product));
 	return $response;
 });
 
 // Delete product to ./mock/products.json
 $app->delete('/product', function (Request $request, Response $response) {
-	$error=false;
 	$body = $request->getParsedBody();
 	$id = $body['id'] ?? "";
 
 	// Check format id
 	if (empty($id) || !preg_match("/^[0-9]+$/", $id)) {
-		$error=true;
-	}
-
-	if($error){
 		$response = $response->withStatus(401);
 		$response->getBody()->write("Bad request");
 		return $response;
 	}
-
-	// Delete product to ./mock/products.json
-	$json = json_decode(file_get_contents(__DIR__ . "/mocks/products.json"), true);
-	foreach ($json as $key => $value) {
-		if ($value['id'] == $id) {
-			unset($json[$key]);
-		}
+	// Delete product from database
+	global $entityManager;
+	$product = $entityManager->getRepository(Product::class)->find($id);
+	if (!$product) {
+		$response = $response->withStatus(401);
+		$response->getBody()->write("Product not found");
+		return $response;
 	}
-	$json = json_encode($json);
-	file_put_contents(__DIR__ . "/mocks/products.json", $json);
+	$entityManager->remove($product);
+	$entityManager->flush();
 
 	$response->getBody()->write("Product deleted");
 	return $response;
@@ -248,9 +223,9 @@ $app->get('/client', function (Request $request, Response $response) {
 	global $entityManager;
 	$client = $entityManager->getRepository(Client::class)->find($token->data);
 	if ($client) {
-		$response->getBody()->write(json_encode($client->jsonSerialize()));
+		$response->getBody()->write(json_encode(json_encode($client)));
 	} else {
-		$response = $response->withStatus(404);
+		$response = $response->withStatus(401);
 		$response->getBody()->write("Client not found");
 	}
 	return $response;
@@ -291,7 +266,7 @@ $app->post('/signup', function (Request $request, Response $response) {
 	$client->setPassword($password);
 	$entityManager->persist($client);
 	$entityManager->flush();
-	$response->getBody()->write(json_encode($client->jsonSerialize()));
+	$response->getBody()->write(json_encode($client));
 	return $response;
 });
 
@@ -307,6 +282,11 @@ $app->put('/client', function (Request $request, Response $response) {
 
 	global $entityManager;
 	$client = $entityManager->getRepository(Client::class)->find($id);
+	if(!$client) {
+		$response = $response->withStatus(401);
+		$response->getBody()->write("Client not found");
+		return $response;
+	}
 	$client = $body['firstname'] ? $client->setFirstname($body['firstname']) : $client;
 	$client = $body['lastname'] ? $client->setLastname($body['lastname']) : $client;
 	$client = $body['email'] ? $client->setEmail($body['email']) : $client;
@@ -320,7 +300,7 @@ $app->put('/client', function (Request $request, Response $response) {
 	$client = $body['password'] ? $client->setPassword($body['password']) : $client;
 	$entityManager->persist($client);
 	$entityManager->flush();
-	$response->getBody()->write(json_encode($client->jsonSerialize()));
+	$response->getBody()->write(json_encode($client));
 	return $response;
 });
 
@@ -328,16 +308,19 @@ $app->delete('/client', function (Request $request, Response $response) {
 	$body = $request->getParsedBody();
 	$id = $body['id'] ?? "";
 
-	// Check format
 	if (empty($id) || !preg_match("/^[0-9]+$/", $id)) {
 		$response = $response->withStatus(401);
 		$response->getBody()->write("Bad request");
 		return $response;
 	}
 
-	// Delete client to database
 	global $entityManager;
 	$client = $entityManager->getRepository(Client::class)->find($id);
+	if(!$client) {
+		$response = $response->withStatus(401);
+		$response->getBody()->write("Client not found");
+		return $response;
+	}
 	$entityManager->remove($client);
 	$entityManager->flush();
 	$response->getBody()->write("Client deleted");

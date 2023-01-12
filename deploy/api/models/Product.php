@@ -131,11 +131,69 @@ class Product implements \JsonSerializable
 	 * @return mixed Returns data which can be serialized by json_encode(), which is a value of any type other than a resource .
 	 */
 	public function jsonSerialize() {
-		return [
-			'id' => $this->getId(),
-			'name' => $this->getName(),
-			'description' => $this->getDescription(),
-			'price' => $this->getPrice()
-		];
+        $vars = get_object_vars($this);
+        return $vars;
 	}
+    /**
+     * @var string|null
+     *
+     * @ORM\Column(name="title", type="string", length=255, nullable=true, options={"fixed"=true})
+     */
+    private $title;
+
+    /**
+     * @var string|null
+     *
+     * @ORM\Column(name="reference", type="string", length=255, nullable=true, options={"fixed"=true})
+     */
+    private $reference;
+
+
+    /**
+     * Set title.
+     *
+     * @param string|null $title
+     *
+     * @return Product
+     */
+    public function setTitle($title = null)
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * Get title.
+     *
+     * @return string|null
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * Set reference.
+     *
+     * @param string|null $reference
+     *
+     * @return Product
+     */
+    public function setReference($reference = null)
+    {
+        $this->reference = $reference;
+
+        return $this;
+    }
+
+    /**
+     * Get reference.
+     *
+     * @return string|null
+     */
+    public function getReference()
+    {
+        return $this->reference;
+    }
 }
