@@ -35,7 +35,7 @@ $options = [
     "algorithm" => ["HS256"],
     "secret" => JWT_SECRET,
     "path" => ["/api"],
-    "ignore" => ["/api/login", "/api/hello", "/api/signup", "/api/client", "/api/product"],
+    "ignore" => ["/api/login", "/api/hello", "/api/signup", "/api/products", "/api/product"],
     "error" => function ($response, $arguments) {
         $data = array('ERREUR' => 'Connexion', 'MESSAGE' => 'non-valid JWT');
         $response = $response->withStatus(401);
@@ -95,7 +95,7 @@ $app->post('/login', function (Request $request, Response $response) {
 
 #region PRODUCT_MIDDLEWARE
 
-$app->get('/product', function (Request $request, Response $response) {
+$app->get('/products', function (Request $request, Response $response) {
 	global $entityManager;
 	$products = $entityManager->getRepository(Product::class)->findAll();
 	$response->getBody()->write(json_encode($products));
