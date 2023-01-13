@@ -43,17 +43,3 @@ RUN ls -al
 # RUN php vendor/bin/doctrine orm:generate-entities --generate-annotations=false --update-entities=true --generate-methods=false ./api/models
 
 # RUN composer update
-
-
-
-
-
-
-
-
-
-
-
-
-
-
